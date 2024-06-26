@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_itoa.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junhhong <junhhong@student.42wolfsburg.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/04 14:02:08 by junhhong          #+#    #+#             */
-/*   Updated: 2024/05/21 12:38:43 by junhhong         ###   ########.fr       */
+/*   Updated: 2023/12/18 12:46:22 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ char	*ft_itoa(int n)
 	int		len;
 	char	*arr;
 
-	len = 0;
 	len = ss(n);
 	if (n < 0)
 		len ++ ;

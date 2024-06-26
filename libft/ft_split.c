@@ -64,13 +64,11 @@ static char	**allocation(char **result, char *s, char c, int len_s)
 
 char	**ft_split(char const *s, char c)
 {
-	int		i;
 	int		num_arr;
 	char	**result;
 	int		len_s;
 
 	len_s = ft_strlen(s);
-	i = 0;
 	if (!s)
 		return (NULL);
 	num_arr = how_many_arr((char *)s, c);

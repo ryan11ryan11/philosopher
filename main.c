@@ -14,30 +14,110 @@
 
 pthread_mutex_t mutex1;
 
-void *function1(void *s)
+int	set_args(t_args *args, char *argv[], int argc)
 {
-	int i = 0;
-	int k = 0;
-	pthread_mutex_lock(&mutex1);
-	while(i < 12)
+	args->nop = ft_atoi(argv[1]);
+	args->ttd = ft_atoi(argv[2]);
+	args->tte = ft_atoi(argv[3]);
+	args->tts = ft_atoi(argv[4]);
+	gettimeofday(&args->start_time, NULL);
+	//printf("time_test:%ld\n",args->start_time.tv_sec); 
+	if (argc == 6)
+		args->not = ft_atoi(argv[5]);
+	else
+		args->not = 0;
+	if (args->nop < 0 || args->ttd < 0 || args->tte < 0 || args->tts < 0 || args->not < 0)
+		return (0);
+	return (1);
+}
+
+int	argument_check(int argc, char *argv[], t_args *args)
+{
+	if (argc < 5 || argc > 6)
 	{
-		printf("%s :: %d\n",(char *)s, i);
+		printf("Number of argument is not good\n");
+		return (0);
+	}
+	if (set_args (args, argv, argc) == 0)
+	{
+		printf("Value of argv is smaller than 0\n");
+		return (0);
+	}
+	return (1);
+}
+
+pthread_t	*philo_maker(t_args *args)
+{
+	pthread_t	*philo_group;
+	int	i;
+
+	i = 0;
+	philo_group = (pthread_t *)malloc((args->nop - 1) * sizeof(pthread_t));
+	while (i < args->nop - 1)
+	{
+		t_philo-> 
 		i ++ ;
 	}
-	pthread_mutex_unlock(&mutex1);
+	return (philo_group);
+}
+
+t_fork	*forkmaker(t_args *args)
+{
+	int	num_philo;
+	t_fork	*fork;
+
+	num_philo = args->nop;
+	printf("num_philo = %d\n",num_philo);
+	fork = (t_fork *)malloc(sizeof(t_fork) * (num_philo - 1));
+	while (num_philo > 0)
+	{
+		fork[num_philo - 1].is_occupied = 0;
+		num_philo -- ;
+	}
+	return (fork);
+}
+
+void	fork_take()
+{
+
+}
+
+void	*philo_action(void *i, t_args *args)
+{
+	(void) i;
+	fork_take();
 	return NULL;
 }
 
-int main()
+void	init(t_args *args)
 {
-	int i = 0;
-	pthread_t thread[2];
+	int	nop;
+	int	i;
 
-	pthread_mutex_init(&mutex1, NULL);
-	pthread_create(&thread[0], NULL, function1, (void *)"thread 0");
-	pthread_create(&thread[1], NULL, function1, (void *)"thread 1");
-	pthread_create(&thread[2], NULL, function1, (void *)"thread 2");
-	pthread_mutex_destroy(&mutex1);
-	usleep (1000);
-	return (0);
+	i = 0;
+	nop = args->nop;
+	while (i < nop)
+	{
+		pthread_create(&args->philo_group[i], NULL, philo_action, NULL);
+		printf("philo made\n");
+		pthread_join(args->philo_group[i], NULL);
+		i ++ ;
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	t_args	args;
+	t_philo	philo;
+
+	printf("argv: %s %s %s %s %s\n", argv[1],argv[2],argv[3],argv[4],argv[5]);
+	if (argument_check(argc, argv, &args) == 0)
+		return (0);
+	args.philo_group = philo_maker(&args);
+	if (args.philo_group == NULL)
+		return (0);
+	args.fork = forkmaker(&args);
+	init(&args);
+	free (args.philo_group);
+	free (fork); 
 }
