@@ -53,9 +53,12 @@ pthread_t	*philo_maker(t_args *args)
 
 	i = 0;
 	philo_group = (pthread_t *)malloc((args->nop - 1) * sizeof(pthread_t));
+	args->philo_struct = (t_philo *)malloc((args->nop - 1) * sizeof(t_philo));
 	while (i < args->nop - 1)
 	{
-		t_philo-> 
+		args->philo_struct[i].philo_index = i;
+		args->philo_struct[i].L_fork = -2;
+		args->philo_struct[i].R_fork = -2;
 		i ++ ;
 	}
 	return (philo_group);
@@ -71,21 +74,28 @@ t_fork	*forkmaker(t_args *args)
 	fork = (t_fork *)malloc(sizeof(t_fork) * (num_philo - 1));
 	while (num_philo > 0)
 	{
-		fork[num_philo - 1].is_occupied = 0;
+		fork[num_philo - 1].is_occupied = -1;
 		num_philo -- ;
 	}
 	return (fork);
 }
 
-void	fork_take()
+void	fork_take(t_args *args)
 {
+	pthread_mutex_t	fork_mutex;
+	int	philo_index;
 
+	pthread_mutex_lock(&fork_mutex);
+	philo_index = args->philo_struct->philo_index;
+	args->fork[philo_index].is_occupied = philo_index;
+	printf("%d has taken a fork\n", philo_index);
+	pthread_mutex_unlock(&fork_mutex);
 }
 
 void	*philo_action(void *i, t_args *args)
 {
 	(void) i;
-	fork_take();
+	fork_take(args);
 	return NULL;
 }
 
@@ -119,5 +129,6 @@ int main(int argc, char *argv[])
 	args.fork = forkmaker(&args);
 	init(&args);
 	free (args.philo_group);
+	free (args.philo_struct);
 	free (fork); 
 }

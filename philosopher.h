@@ -16,7 +16,8 @@ typedef struct s_args
 	int	not; // number_of_times_each_philosopher_must_eat
 	struct timeval start_time;
 	pthread_t	*philo_group;
-	t_fork	*fork;
+	t_philo		*philo_struct;
+	t_fork		*fork;
 }	t_args;
 		
 typedef struct s_fork
@@ -27,6 +28,8 @@ typedef struct s_fork
 typedef struct s_philo
 {
 	int	philo_index;
+	int	L_fork;
+	int	R_fork;
 }	t_philo;
 
 int	ft_atoi(const char *nptr);
