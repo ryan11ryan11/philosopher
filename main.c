@@ -52,11 +52,12 @@ pthread_t	*philo_maker(t_args *args)
 	int	i;
 
 	i = 0;
-	philo_group = (pthread_t *)malloc((args->nop - 1) * sizeof(pthread_t));
-	args->philo_struct = (t_philo *)malloc((args->nop - 1) * sizeof(t_philo));
-	while (i < args->nop - 1)
+	philo_group = (pthread_t *)malloc((args->nop) * sizeof(pthread_t));
+	args->philo_struct = (t_philo *)malloc((args->nop) * sizeof(t_philo));
+	while (i < args->nop)
 	{
 		args->philo_struct[i].philo_index = i;
+		printf("philo %d made\n", i);
 		args->philo_struct[i].L_fork = -2;
 		args->philo_struct[i].R_fork = -2;
 		i ++ ;
@@ -80,36 +81,51 @@ t_fork	*forkmaker(t_args *args)
 	return (fork);
 }
 
-void	fork_take(t_args *args)
+void	fork_take(t_args *args, int	philo_index)
 {
 	pthread_mutex_t	fork_mutex;
-	int	philo_index;
 
+	pthread_mutex_init(&fork_mutex, NULL);
 	pthread_mutex_lock(&fork_mutex);
-	philo_index = args->philo_struct->philo_index;
 	args->fork[philo_index].is_occupied = philo_index;
+	if (philo_index == 1)
+	{
+		args->philo_struct[philo_index].L_fork = philo_index;
+		args->philo_struct[philo_index].R_fork = args->nop - 1;
+	}
+	else
+	{
+		args->philo_struct[philo_index].L_fork = philo_index;
+		args->philo_struct[philo_index].R_fork = philo_index - 1;
+	}
 	printf("%d has taken a fork\n", philo_index);
 	pthread_mutex_unlock(&fork_mutex);
 }
 
-void	*philo_action(void *i, t_args *args)
+void	*philo_action(void *arginfo)
 {
-	(void) i;
-	fork_take(args);
+	t_arginfo	*arginfo2;
+
+	arginfo2 = (void *)arginfo;
+	fork_take(arginfo2->args, arginfo2->philo_num);
 	return NULL;
 }
 
 void	init(t_args *args)
 {
 	int	nop;
+	t_arginfo	arginfo;
 	int	i;
 
 	i = 0;
+	arginfo.args = args;
 	nop = args->nop;
 	while (i < nop)
 	{
-		pthread_create(&args->philo_group[i], NULL, philo_action, NULL);
-		printf("philo made\n");
+		arginfo.philo_num = i;
+		pthread_create(&args->philo_group[i], NULL, philo_action, &arginfo);
+		printf("philo %d goes to take a fork\n", i);
+		usleep(100);
 		pthread_join(args->philo_group[i], NULL);
 		i ++ ;
 	}
@@ -118,7 +134,6 @@ void	init(t_args *args)
 int main(int argc, char *argv[])
 {
 	t_args	args;
-	t_philo	philo;
 
 	printf("argv: %s %s %s %s %s\n", argv[1],argv[2],argv[3],argv[4],argv[5]);
 	if (argument_check(argc, argv, &args) == 0)
@@ -130,5 +145,5 @@ int main(int argc, char *argv[])
 	init(&args);
 	free (args.philo_group);
 	free (args.philo_struct);
-	free (fork); 
+	//free (fork); 
 }

@@ -16,14 +16,20 @@ typedef struct s_args
 	int	not; // number_of_times_each_philosopher_must_eat
 	struct timeval start_time;
 	pthread_t	*philo_group;
-	t_philo		*philo_struct;
-	t_fork		*fork;
+	struct s_philo		*philo_struct;
+	struct s_fork		*fork;
 }	t_args;
 		
 typedef struct s_fork
 {
 	int	is_occupied;
 }	t_fork;
+
+typedef struct s_arginfo
+{
+	int	philo_num;
+	t_args	*args;
+}	t_arginfo;
 
 typedef struct s_philo
 {
