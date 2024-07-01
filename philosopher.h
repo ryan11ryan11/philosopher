@@ -35,6 +35,8 @@ typedef struct s_arginfo
 typedef struct s_philo
 {
 	int	philo_index;
+	struct timeval	last_eat;
+	t_args	*args;
 }	t_philo;
 
 int	ft_atoi(const char *nptr);

@@ -57,6 +57,7 @@ pthread_t	*philo_maker(t_args *args)
 	while (i < args->nop)
 	{
 		args->philo_struct[i].philo_index = i;
+		args->philo_struct[i].args = args;
 		printf("philo %d made\n", i);
 		i ++ ;
 	}
@@ -100,18 +101,20 @@ void	fork_take(t_args *args, int	philo_index)
 		args->fork[args-> nop - 1].is_occupied = philo_index;
 	else
 		args->fork[philo_index - 1].is_occupied = philo_index;
-	printf("%d has taken a fork\n", philo_index);
+	gettimeofday(&(args->philo_struct[philo_index].last_eat), NULL);
+	printf("%ld %d has taken a fork\n", args->philo_struct[philo_index].last_eat.tv_usec - args->start_time.tv_usec, philo_index);
+	printf("%ld %d is eating\n", args->philo_struct[philo_index].last_eat.tv_usec - args->start_time.tv_usec, philo_index);
 	usleep (args->tte);
 	fork_release (args, philo_index);
 	pthread_mutex_unlock(&fork_mutex);
 }
 
-int	fork_available(t_arginfo *arginfo)
+int	fork_available(t_philo *arginfo)
 {
 	int	philo_index;
 	t_args	*args;
 
-	philo_index = arginfo->philo_num;
+	philo_index = arginfo->philo_index;
 	args = arginfo->args;
 	if (philo_index == 0)
 	{
@@ -132,29 +135,29 @@ int	fork_available(t_arginfo *arginfo)
 	return (0);
 }
 
-int fork_wait(t_arginfo	*arginfo)
-{	
-	if (arginfo->philo_num == 0)
+int fork_wait(t_philo	*arginfo)
+{
+	if (arginfo->philo_index == 0)
 	{
-		while (arginfo->args->fork[arginfo->philo_num].is_occupied >= 0 || \
+		while (arginfo->args->fork[arginfo->philo_index].is_occupied >= 0 || \
 			arginfo->args->fork[arginfo->args->nop - 1].is_occupied >= 0)
 			usleep(1);
 	}
 	else
-		while (arginfo->args->fork[arginfo->philo_num].is_occupied >= 0 || \
-		arginfo->args->fork[arginfo->philo_num - 1].is_occupied >= 0)
+		while (arginfo->args->fork[arginfo->philo_index].is_occupied >= 0 || \
+		arginfo->args->fork[arginfo->philo_index - 1].is_occupied >= 0)
 			usleep(1);
-	fork_take (arginfo->args, arginfo->philo_num);
+	fork_take (arginfo->args, arginfo->philo_index);
 	return (1);
 }
 
 void	*philo_action(void *arginfo)
 {
-	t_arginfo	*arginfo2;
+	t_philo	*arginfo2;
 
 	arginfo2 = (void *)arginfo;
 	if (fork_available(arginfo2) == 1)
-		fork_take(arginfo2->args, arginfo2->philo_num);
+		fork_take(arginfo2->args, arginfo2->philo_index);
 	else
 		fork_wait(arginfo2);
 	return (NULL);
@@ -163,17 +166,14 @@ void	*philo_action(void *arginfo)
 void	init(t_args *args)
 {
 	int	nop;
-	t_arginfo	arginfo;
 	int	i;
 
 	i = 0;
-	arginfo.args = args;
 	nop = args->nop;
 	while (i < nop)
 	{
-		arginfo.philo_num = i;
-		pthread_create(&args->philo_group[i], NULL, philo_action, &arginfo);
-		usleep(100);
+		pthread_create(&args->philo_group[i], NULL, philo_action, &args->philo_struct[i]);
+		//usleep(100);
 		i ++ ;
 	}
 	i = 0;
