@@ -102,13 +102,23 @@ void	fork_take(t_args *args, int	philo_index)
 	pthread_mutex_unlock(&fork_mutex);
 }
 
+int	fork_available(t_fork *fork)
+{
+	if (fork->is_occupied >= 0)
+		return (1);
+	else
+		return (0);
+}
+
 void	*philo_action(void *arginfo)
 {
 	t_arginfo	*arginfo2;
+	int	philo_index;
 
 	arginfo2 = (void *)arginfo;
-	fork_take(arginfo2->args, arginfo2->philo_num);
-	return NULL;
+	philo_index = arginfo2->philo_num;
+	if (fork_available(&arginfo2->args->fork[philo_index]) != 0)
+		fork_take(arginfo2->args, arginfo2->philo_num);
 }
 
 void	init(t_args *args)
