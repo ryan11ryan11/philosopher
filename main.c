@@ -58,8 +58,6 @@ pthread_t	*philo_maker(t_args *args)
 	{
 		args->philo_struct[i].philo_index = i;
 		printf("philo %d made\n", i);
-		args->philo_struct[i].L_fork = -2;
-		args->philo_struct[i].R_fork = -2;
 		i ++ ;
 	}
 	return (philo_group);
@@ -76,9 +74,19 @@ t_fork	*forkmaker(t_args *args)
 	while (num_philo > 0)
 	{
 		fork[num_philo - 1].is_occupied = -1;
+		fork[num_philo - 1].fork_index = num_philo - 1;
 		num_philo -- ;
 	}
 	return (fork);
+}
+
+void	fork_release(t_args *args, int	philo_index)
+{
+	args->fork[philo_index].is_occupied = -2;
+	if (philo_index == 0)
+		args->fork[args-> nop - 1].is_occupied = -2;
+	else
+		args->fork[philo_index - 1].is_occupied = -2;
 }
 
 void	fork_take(t_args *args, int	philo_index)
@@ -88,37 +96,68 @@ void	fork_take(t_args *args, int	philo_index)
 	pthread_mutex_init(&fork_mutex, NULL);
 	pthread_mutex_lock(&fork_mutex);
 	args->fork[philo_index].is_occupied = philo_index;
-	if (philo_index == 1)
-	{
-		args->philo_struct[philo_index].L_fork = philo_index;
-		args->philo_struct[philo_index].R_fork = args->nop - 1;
-	}
+	if (philo_index == 0)
+		args->fork[args-> nop - 1].is_occupied = philo_index;
 	else
-	{
-		args->philo_struct[philo_index].L_fork = philo_index;
-		args->philo_struct[philo_index].R_fork = philo_index - 1;
-	}
+		args->fork[philo_index - 1].is_occupied = philo_index;
 	printf("%d has taken a fork\n", philo_index);
+	usleep (args->tte);
+	fork_release (args, philo_index);
 	pthread_mutex_unlock(&fork_mutex);
 }
 
-int	fork_available(t_fork *fork)
+int	fork_available(t_arginfo *arginfo)
 {
-	if (fork->is_occupied >= 0)
-		return (1);
+	int	philo_index;
+	t_args	*args;
+
+	philo_index = arginfo->philo_num;
+	args = arginfo->args;
+	if (philo_index == 0)
+	{
+		if (args->fork[philo_index].is_occupied >= 0 || \
+			args->fork[args->nop - 1].is_occupied >= 0)
+			return (0);
+		else
+			return (1);
+	}
 	else
-		return (0);
+	{
+		if (args->fork[philo_index].is_occupied >= 0 || \
+			args->fork[philo_index - 1].is_occupied >= 0)
+			return (0);
+		else
+			return (1);
+	}
+	return (0);
+}
+
+int fork_wait(t_arginfo	*arginfo)
+{	
+	if (arginfo->philo_num == 0)
+	{
+		while (arginfo->args->fork[arginfo->philo_num].is_occupied >= 0 || \
+			arginfo->args->fork[arginfo->args->nop - 1].is_occupied >= 0)
+			usleep(1);
+	}
+	else
+		while (arginfo->args->fork[arginfo->philo_num].is_occupied >= 0 || \
+		arginfo->args->fork[arginfo->philo_num - 1].is_occupied >= 0)
+			usleep(1);
+	fork_take (arginfo->args, arginfo->philo_num);
+	return (1);
 }
 
 void	*philo_action(void *arginfo)
 {
 	t_arginfo	*arginfo2;
-	int	philo_index;
 
 	arginfo2 = (void *)arginfo;
-	philo_index = arginfo2->philo_num;
-	if (fork_available(&arginfo2->args->fork[philo_index]) != 0)
+	if (fork_available(arginfo2) == 1)
 		fork_take(arginfo2->args, arginfo2->philo_num);
+	else
+		fork_wait(arginfo2);
+	return (NULL);
 }
 
 void	init(t_args *args)
@@ -134,8 +173,12 @@ void	init(t_args *args)
 	{
 		arginfo.philo_num = i;
 		pthread_create(&args->philo_group[i], NULL, philo_action, &arginfo);
-		printf("philo %d goes to take a fork\n", i);
 		usleep(100);
+		i ++ ;
+	}
+	i = 0;
+	while (i < nop)
+	{
 		pthread_join(args->philo_group[i], NULL);
 		i ++ ;
 	}

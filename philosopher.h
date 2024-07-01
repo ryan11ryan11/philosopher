@@ -23,6 +23,7 @@ typedef struct s_args
 typedef struct s_fork
 {
 	int	is_occupied;
+	int	fork_index;
 }	t_fork;
 
 typedef struct s_arginfo
@@ -34,8 +35,6 @@ typedef struct s_arginfo
 typedef struct s_philo
 {
 	int	philo_index;
-	int	L_fork;
-	int	R_fork;
 }	t_philo;
 
 int	ft_atoi(const char *nptr);
