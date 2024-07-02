@@ -20,7 +20,10 @@ int	set_args(t_args *args, char *argv[], int argc)
 	args->ttd = ft_atoi(argv[2]);
 	args->tte = ft_atoi(argv[3]);
 	args->tts = ft_atoi(argv[4]);
-	gettimeofday(&args->start_time, NULL);
+	args->is_died = 0;
+	args->start_time = 0;
+	args->start_time = get_time();
+	printf("nop:%d ttd:%d tte:%d tts:%d\n", args->nop, args->ttd, args->tte, args->tts);
 	//printf("time_test:%ld\n",args->start_time.tv_sec); 
 	if (argc == 6)
 		args->not = ft_atoi(argv[5]);
@@ -58,7 +61,7 @@ pthread_t	*philo_maker(t_args *args)
 	{
 		args->philo_struct[i].philo_index = i;
 		args->philo_struct[i].args = args;
-		printf("philo %d made\n", i);
+		args->philo_struct[i].last_eat = get_time();
 		i ++ ;
 	}
 	return (philo_group);
@@ -91,18 +94,40 @@ void	fork_release(t_args *args, int	philo_index)
 
 void	fork_take(t_args *args, int	philo_index)
 {
+	long	time;
+	
 	pthread_mutex_lock(args->philo_struct[philo_index].l_fork);
 	pthread_mutex_lock(args->philo_struct[philo_index].r_fork);
-	printf("%d takes fork\n", philo_index);
+	time = get_time() - args->start_time;
+	args->philo_struct[philo_index].last_eat = get_time();
+	printf("%ld %d has taken a fork\n", time, philo_index);
+	printf("%ld %d is eating\n", time, philo_index);
 	usleep(args->tte);
 }
 
-long	get_time(void)
+long	get_time()
 {
 	struct timeval time;
 
 	gettimeofday(&time, NULL);
 	return (time.tv_sec*1000 + time.tv_usec/1000);
+}
+
+void	sleeping(t_args *args, int philo_index)
+{
+	long	time;
+
+	time = get_time() - args->start_time;
+	printf("%ld %d is sleeping\n", time, philo_index);
+	usleep (args->tts);
+}
+
+void	thinking(t_args *args, int philo_index)
+{
+	long	time;
+
+	time = get_time() - args->start_time;
+	printf("%ld %d is thinking\n", time, philo_index);
 }
 
 void	*philo_action(void *arginfo)
@@ -112,16 +137,47 @@ void	*philo_action(void *arginfo)
 	arginfo2 = (void *)arginfo;
 	fork_take(arginfo2->args, arginfo2->philo_index);
 	fork_release(arginfo2->args, arginfo2->philo_index);
+	sleeping(arginfo2->args, arginfo2->philo_index);
+	thinking(arginfo2->args, arginfo2->philo_index);
 	return (NULL);
+}
+
+void	*monitoring(void *args)
+{
+	int	i;
+	long	time;
+	t_args	*args2;
+
+	args2 = (t_args *)args;
+	i = 0;
+	time = get_time() - args2->start_time;
+	while (args2->is_died == 0)
+	{
+		i = 0;
+		while (i < args2->nop)
+		{
+			//printf("%ld\n", get_time() - args2->philo_struct[i].last_eat);
+			//printf("last eat:%ld current time:%ld", args2->philo_struct[i].last_eat, get_time());
+			if (get_time() - args2->philo_struct[i].last_eat > args2->ttd)
+			{
+				printf("%ld %d has died\n", time, i);
+				return ((void *)NULL);
+			}
+			i ++ ;
+		}
+	}
+	return (void *)(NULL);
 }
 
 void	init(t_args *args)
 {
 	int	nop;
 	int	i;
+	pthread_t	monitor;
 
 	i = 0;
 	nop = args->nop;
+	pthread_create(&monitor, NULL, monitoring, args);
 	while (i < nop)
 	{
 		pthread_create(&args->philo_group[i], NULL, philo_action, &args->philo_struct[i]);
@@ -139,7 +195,6 @@ int main(int argc, char *argv[])
 {
 	t_args	args;
 
-	printf("argv: %s %s %s %s %s\n", argv[1],argv[2],argv[3],argv[4],argv[5]);
 	if (argument_check(argc, argv, &args) == 0)
 		return (0);
 	args.philo_group = philo_maker(&args);

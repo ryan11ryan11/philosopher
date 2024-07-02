@@ -14,7 +14,8 @@ typedef struct s_args
 	int	tte; // time to eat
 	int	tts; // time to sleep
 	int	not; // number_of_times_each_philosopher_must_eat
-	struct timeval start_time;
+	int	is_died;
+	long	start_time;
 	pthread_t	*philo_group;
 	struct s_philo		*philo_struct;
 	pthread_mutex_t		*fork;
@@ -29,12 +30,14 @@ typedef struct s_arginfo
 typedef struct s_philo
 {
 	int	philo_index;
-	struct timeval	last_eat;
+	long	last_eat;
 	pthread_mutex_t	*l_fork;
 	pthread_mutex_t	*r_fork;
 	t_args	*args;
 }	t_philo;
 
 int	ft_atoi(const char *nptr);
+
+long	get_time(void);
 
 #endif
