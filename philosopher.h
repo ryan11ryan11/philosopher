@@ -17,14 +17,8 @@ typedef struct s_args
 	struct timeval start_time;
 	pthread_t	*philo_group;
 	struct s_philo		*philo_struct;
-	struct s_fork		*fork;
+	pthread_mutex_t		*fork;
 }	t_args;
-		
-typedef struct s_fork
-{
-	int	is_occupied;
-	int	fork_index;
-}	t_fork;
 
 typedef struct s_arginfo
 {
@@ -36,6 +30,8 @@ typedef struct s_philo
 {
 	int	philo_index;
 	struct timeval	last_eat;
+	pthread_mutex_t	*l_fork;
+	pthread_mutex_t	*r_fork;
 	t_args	*args;
 }	t_philo;
 
