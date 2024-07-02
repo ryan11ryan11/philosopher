@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:19:26 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/02 13:07:42 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/02 13:11:11 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,11 +97,12 @@ void	fork_take(t_args *args, int	philo_index)
 	usleep(args->tte);
 }
 
-long	get_time()
+long	get_time(void)
 {
 	struct timeval time;
 
 	gettimeofday(&time, NULL);
+	return (time.tv_sec*1000 + time.tv_usec/1000);
 }
 
 void	*philo_action(void *arginfo)
