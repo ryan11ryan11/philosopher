@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:19:26 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/02 13:11:11 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/04 17:53:56 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,20 @@ int	set_args(t_args *args, char *argv[], int argc)
 	args->ttd = ft_atoi(argv[2]);
 	args->tte = ft_atoi(argv[3]);
 	args->tts = ft_atoi(argv[4]);
+	if (argc > 5)
+		args->not = ft_atoi(argv[5]);
+	else
+		args->not = INT_MAX;
 	args->is_died = 0;
 	args->start_time = 0;
 	args->start_time = get_time();
-	printf("nop:%d ttd:%d tte:%d tts:%d\n", args->nop, args->ttd, args->tte, args->tts);
-	//printf("time_test:%ld\n",args->start_time.tv_sec); 
-	if (argc == 6)
-		args->not = ft_atoi(argv[5]);
-	else
-		args->not = 0;
+	args->all_full = 0;
+	printf("nop:%d ttd:%d tte:%d tts:%d not:%d\n", args->nop, args->ttd, args->tte, args->tts, args->not);
+	pthread_mutex_init (&args->announce_lock, NULL);
+	// if (argc == 6)
+	// 	args->not = ft_atoi(argv[5]);
+	// else
+	// 	args->not = 0;
 	if (args->nop < 0 || args->ttd < 0 || args->tte < 0 || args->tts < 0 || args->not < 0)
 		return (0);
 	return (1);
@@ -61,7 +66,9 @@ pthread_t	*philo_maker(t_args *args)
 	{
 		args->philo_struct[i].philo_index = i;
 		args->philo_struct[i].args = args;
-		args->philo_struct[i].last_eat = get_time();
+		args->philo_struct[i].finished = 0;
+		args->philo_struct[i].last_eat = (long)args->start_time;
+		args->philo_struct[i].meals = 0;
 		i ++ ;
 	}
 	return (philo_group);
@@ -88,6 +95,7 @@ pthread_mutex_t	*forkmaker(t_args *args)
 
 void	fork_release(t_args *args, int	philo_index)
 {
+	args->philo_struct[philo_index].last_eat = get_time();
 	pthread_mutex_unlock(args->philo_struct[philo_index].l_fork);
 	pthread_mutex_unlock(args->philo_struct[philo_index].r_fork);
 }
@@ -98,11 +106,13 @@ void	fork_take(t_args *args, int	philo_index)
 	
 	pthread_mutex_lock(args->philo_struct[philo_index].l_fork);
 	pthread_mutex_lock(args->philo_struct[philo_index].r_fork);
+	args->philo_struct[philo_index].last_eat = get_time() + (args->tte * 1000);
 	time = get_time() - args->start_time;
-	args->philo_struct[philo_index].last_eat = get_time();
-	printf("%ld %d has taken a fork\n", time, philo_index);
-	printf("%ld %d is eating\n", time, philo_index);
-	usleep(args->tte);
+	announce(args, philo_index, TAKE_FORK);
+	announce(args, philo_index, EATING);
+	if (args->not >= 0)
+		args->philo_struct[philo_index].meals ++ ;
+	usleep(args->tte * 1000);
 }
 
 long	get_time()
@@ -110,63 +120,75 @@ long	get_time()
 	struct timeval time;
 
 	gettimeofday(&time, NULL);
-	return (time.tv_sec*1000 + time.tv_usec/1000);
+	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
 void	sleeping(t_args *args, int philo_index)
 {
-	long	time;
-
-	time = get_time() - args->start_time;
-	printf("%ld %d is sleeping\n", time, philo_index);
-	usleep (args->tts);
+	announce(args, philo_index, SLEEPING);
+	usleep (args->tts * 1000);
 }
 
 void	thinking(t_args *args, int philo_index)
 {
-	long	time;
-
-	time = get_time() - args->start_time;
-	printf("%ld %d is thinking\n", time, philo_index);
+	announce(args,philo_index, THINKING);
 }
 
 void	*philo_action(void *arginfo)
 {
 	t_philo	*arginfo2;
+	t_args *args;
+	int	philo_index;
 
 	arginfo2 = (void *)arginfo;
-	fork_take(arginfo2->args, arginfo2->philo_index);
-	fork_release(arginfo2->args, arginfo2->philo_index);
-	sleeping(arginfo2->args, arginfo2->philo_index);
-	thinking(arginfo2->args, arginfo2->philo_index);
+	args = arginfo2->args;
+	philo_index = arginfo2->philo_index;
+	while (arginfo2->args->is_died == 0 && args->all_full == 0)
+	{
+		fork_take(arginfo2->args, arginfo2->philo_index); // here
+		if (args->philo_struct[philo_index].meals >= args->not)
+			args->philo_struct[philo_index].finished = 1;
+		if (args->all_full == 1)
+		{
+			fork_release(arginfo2->args, arginfo2->philo_index);
+			return (NULL);
+		}
+		fork_release(arginfo2->args, arginfo2->philo_index);
+		sleeping(arginfo2->args, arginfo2->philo_index);
+		thinking(arginfo2->args, arginfo2->philo_index);
+	}
 	return (NULL);
 }
 
 void	*monitoring(void *args)
 {
 	int	i;
-	long	time;
+	int	sum;
 	t_args	*args2;
 
+	sum = 0;
 	args2 = (t_args *)args;
-	i = 0;
-	time = get_time() - args2->start_time;
 	while (args2->is_died == 0)
 	{
 		i = 0;
+		sum = 0;
 		while (i < args2->nop)
 		{
-			//printf("%ld\n", get_time() - args2->philo_struct[i].last_eat);
-			//printf("last eat:%ld current time:%ld", args2->philo_struct[i].last_eat, get_time());
-			if (get_time() - args2->philo_struct[i].last_eat > args2->ttd)
+			if (args2->philo_struct[i].finished == 1)
+				sum ++ ;
+			if (sum == args2->nop)
+				args2->all_full = 1;
+			if (get_time() - args2->philo_struct[i].last_eat > (long)args2->ttd)
 			{
-				printf("%ld %d has died\n", time, i);
-				return ((void *)NULL);
+				printf("not eat since:%ld ttd:%ld meals:%d phil_index:%d\n", get_time() - args2->philo_struct[i].last_eat, (long)args2->ttd, args2->philo_struct[i].finished,i);
+				if(announce(args2, i, DIED) == 1)
+					return (NULL);
+				args2->is_died = 1;
 			}
 			i ++ ;
 		}
 	}
-	return (void *)(NULL);
+	return (NULL);
 }
 
 void	init(t_args *args)
@@ -181,6 +203,7 @@ void	init(t_args *args)
 	while (i < nop)
 	{
 		pthread_create(&args->philo_group[i], NULL, philo_action, &args->philo_struct[i]);
+		usleep(100);
 		i ++ ;
 	}
 	i = 0;
@@ -189,6 +212,23 @@ void	init(t_args *args)
 		pthread_join(args->philo_group[i], NULL);
 		i ++ ;
 	}
+}
+
+int	announce(t_args *args, int philo_index, char *msg)
+{
+	long	time;
+
+	time = get_time() - args->start_time;
+	pthread_mutex_lock(&args->announce_lock);
+	if (args->is_died == 1)
+	{
+		pthread_mutex_unlock(&args->announce_lock);
+		return (1);
+	}
+	if (args->is_died == 0)
+		printf("%ld %d %s\n", time, philo_index, msg);
+	pthread_mutex_unlock(&args->announce_lock);
+	return (0);
 }
 
 int main(int argc, char *argv[])
