@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:19:26 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/04 17:53:56 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/04 17:59:08 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,6 +151,7 @@ void	*philo_action(void *arginfo)
 		if (args->all_full == 1)
 		{
 			fork_release(arginfo2->args, arginfo2->philo_index);
+			sleeping(arginfo2->args, arginfo2->philo_index);
 			return (NULL);
 		}
 		fork_release(arginfo2->args, arginfo2->philo_index);
