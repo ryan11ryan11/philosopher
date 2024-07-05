@@ -1,7 +1,7 @@
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
 CLIENT = client
-COMMON = main
+COMMON = main action args maker util
 NAME = philo
 
 #COMOBJ = $(addprefix $(COMDIR)/, $(addsuffix .o, $(COMMON)))

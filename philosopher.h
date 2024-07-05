@@ -53,4 +53,20 @@ long	get_time(void);
 int	announce(t_args *args, int philo_index, char *msg);
 char	*ft_strchr(const char *s, int c);
 
+pthread_t	*philo_maker(t_args *args);
+pthread_mutex_t	*forkmaker(t_args *args);
+
+void	fork_release(t_args *args, int	philo_index);
+void	fork_take(t_args *args, int	philo_index);
+void	thinking(t_args *args, int philo_index);
+void	sleeping(t_args *args, int philo_index);
+
+int	set_args(t_args *args, char *argv[], int argc);
+int	argument_check(int argc, char *argv[], t_args *args);
+void one_philo(t_args *args);
+
+long	get_time();
+void	*philo_action(void *arginfo);
+int	announce(t_args *args, int philo_index, char *msg);
+
 #endif
