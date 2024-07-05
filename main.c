@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:19:26 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/04 17:59:08 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/05 13:40:08 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,6 @@ pthread_mutex_t	*forkmaker(t_args *args)
 
 void	fork_release(t_args *args, int	philo_index)
 {
-	args->philo_struct[philo_index].last_eat = get_time();
 	pthread_mutex_unlock(args->philo_struct[philo_index].l_fork);
 	pthread_mutex_unlock(args->philo_struct[philo_index].r_fork);
 }
@@ -103,10 +102,10 @@ void	fork_release(t_args *args, int	philo_index)
 void	fork_take(t_args *args, int	philo_index)
 {
 	long	time;
-	
+
 	pthread_mutex_lock(args->philo_struct[philo_index].l_fork);
 	pthread_mutex_lock(args->philo_struct[philo_index].r_fork);
-	args->philo_struct[philo_index].last_eat = get_time() + (args->tte * 1000);
+	args->philo_struct[philo_index].last_eat = get_time();
 	time = get_time() - args->start_time;
 	announce(args, philo_index, TAKE_FORK);
 	announce(args, philo_index, EATING);
@@ -151,7 +150,8 @@ void	*philo_action(void *arginfo)
 		if (args->all_full == 1)
 		{
 			fork_release(arginfo2->args, arginfo2->philo_index);
-			sleeping(arginfo2->args, arginfo2->philo_index);
+			announce(args, philo_index, SLEEPING);
+			//sleeping(arginfo2->args, arginfo2->philo_index);
 			return (NULL);
 		}
 		fork_release(arginfo2->args, arginfo2->philo_index);
@@ -178,10 +178,12 @@ void	*monitoring(void *args)
 			if (args2->philo_struct[i].finished == 1)
 				sum ++ ;
 			if (sum == args2->nop)
+			{
 				args2->all_full = 1;
+				return (NULL);
+			}
 			if (get_time() - args2->philo_struct[i].last_eat > (long)args2->ttd)
 			{
-				printf("not eat since:%ld ttd:%ld meals:%d phil_index:%d\n", get_time() - args2->philo_struct[i].last_eat, (long)args2->ttd, args2->philo_struct[i].finished,i);
 				if(announce(args2, i, DIED) == 1)
 					return (NULL);
 				args2->is_died = 1;
@@ -204,7 +206,7 @@ void	init(t_args *args)
 	while (i < nop)
 	{
 		pthread_create(&args->philo_group[i], NULL, philo_action, &args->philo_struct[i]);
-		usleep(100);
+		usleep(1000);
 		i ++ ;
 	}
 	i = 0;
