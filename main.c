@@ -6,18 +6,16 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:19:26 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/05 14:23:56 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:31:12 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosopher.h"
 
-pthread_mutex_t mutex1;
-
 void	*monitoring(void *args)
 {
-	int	i;
-	int	sum;
+	int		i;
+	int		sum;
 	t_args	*args2;
 
 	sum = 0;
@@ -37,7 +35,7 @@ void	*monitoring(void *args)
 			}
 			if (get_time() - args2->philo_struct[i].last_eat > (long)args2->ttd)
 			{
-				if(announce(args2, i, DIED) == 1)
+				if (announce (args2, i, DIED) == 1)
 					return (NULL);
 				args2->is_died = 1;
 			}
@@ -49,8 +47,8 @@ void	*monitoring(void *args)
 
 void	init(t_args *args)
 {
-	int	nop;
-	int	i;
+	int			nop;
+	int			i;
 	pthread_t	monitor;
 
 	i = 0;
@@ -58,7 +56,8 @@ void	init(t_args *args)
 	pthread_create(&monitor, NULL, monitoring, args);
 	while (i < nop)
 	{
-		pthread_create(&args->philo_group[i], NULL, philo_action, &args->philo_struct[i]);
+		pthread_create(&args->philo_group[i], NULL, \
+		philo_action, &args->philo_struct[i]);
 		usleep(1000);
 		i ++ ;
 	}
@@ -71,7 +70,7 @@ void	init(t_args *args)
 	pthread_join(monitor, NULL);
 }
 
-int main(int argc, char *argv[])
+int	main(int argc, char *argv[])
 {
 	t_args	args;
 
@@ -89,5 +88,5 @@ int main(int argc, char *argv[])
 	init(&args);
 	free (args.philo_group);
 	free (args.philo_struct);
-	free (args.fork); 
+	free (args.fork);
 }

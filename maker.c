@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/05 14:17:35 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/05 14:18:15 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/05 14:32:01 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 pthread_t	*philo_maker(t_args *args)
 {
 	pthread_t	*philo_group;
-	int	i;
+	int			i;
 
 	i = 0;
 	philo_group = (pthread_t *)malloc((args->nop) * sizeof(pthread_t));
@@ -37,7 +37,8 @@ pthread_mutex_t	*forkmaker(t_args *args)
 	int	i;
 
 	i = 1;
-	args->fork = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) * (args->nop));
+	args->fork = (pthread_mutex_t *)malloc \
+	(sizeof(pthread_mutex_t) * (args->nop));
 	pthread_mutex_init (&args->fork[0], NULL);
 	args->philo_struct[0].l_fork = &args->fork[0];
 	args->philo_struct[0].r_fork = &args->fork[args->nop - 1];
