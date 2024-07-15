@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/05 14:33:42 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/05 14:35:57 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/15 16:03:33 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,5 +80,7 @@ void			one_philo(t_args *args);
 long			get_time(void);
 void			*philo_action(void *arginfo);
 int				announce(t_args *args, int philo_index, char *msg);
+
+int				ft_isdigit(int c);
 
 #endif
