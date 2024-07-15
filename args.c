@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/05 14:21:10 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/15 16:32:18 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/15 16:46:19 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ int	is_alldigit(char *argv[])
 				return (-1);
 			k ++ ;
 		}
+		k = 0;
 		i ++ ;
 	}
 	return (0);
@@ -34,7 +35,7 @@ int	is_alldigit(char *argv[])
 
 int	set_args(t_args *args, char *argv[], int argc)
 {
-	if (is_alldigit(argv) != 0)
+	if (is_alldigit(argv) == -1)
 		return (-1);
 	args->nop = ft_atoi(argv[1]);
 	args->ttd = ft_atoi(argv[2]);
