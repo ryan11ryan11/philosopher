@@ -6,11 +6,21 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:19:26 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/05 14:31:12 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/15 15:32:13 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosopher.h"
+
+int	is_allfull(t_args *args, int sum)
+{
+	if (sum == args->nop)
+	{
+		args->all_full = 1;
+		return (1);
+	}
+	return (0);
+}
 
 void	*monitoring(void *args)
 {
@@ -18,7 +28,6 @@ void	*monitoring(void *args)
 	int		sum;
 	t_args	*args2;
 
-	sum = 0;
 	args2 = (t_args *)args;
 	while (args2->is_died == 0)
 	{
@@ -28,11 +37,8 @@ void	*monitoring(void *args)
 		{
 			if (args2->philo_struct[i].finished == 1)
 				sum ++ ;
-			if (sum == args2->nop)
-			{
-				args2->all_full = 1;
+			if (is_allfull(args, sum) == 1)
 				return (NULL);
-			}
 			if (get_time() - args2->philo_struct[i].last_eat > (long)args2->ttd)
 			{
 				if (announce (args2, i, DIED) == 1)
@@ -76,14 +82,14 @@ int	main(int argc, char *argv[])
 
 	if (argument_check(argc, argv, &args) == 0)
 		return (0);
-	args.philo_group = philo_maker(&args);
-	if (args.philo_group == NULL)
-		return (0);
 	if (args.nop == 1)
 	{
 		one_philo(&args);
 		return (0);
 	}
+	args.philo_group = philo_maker(&args);
+	if (args.philo_group == NULL)
+		return (0);
 	args.fork = forkmaker(&args);
 	init(&args);
 	free (args.philo_group);

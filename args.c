@@ -6,7 +6,7 @@
 /*   By: junhhong <junhhong@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/05 14:21:10 by junhhong          #+#    #+#             */
-/*   Updated: 2024/07/05 14:29:10 by junhhong         ###   ########.fr       */
+/*   Updated: 2024/07/15 15:58:58 by junhhong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ int	set_args(t_args *args, char *argv[], int argc)
 	args->ttd = ft_atoi(argv[2]);
 	args->tte = ft_atoi(argv[3]);
 	args->tts = ft_atoi(argv[4]);
+	printf("nop:%d ttd:%d tte :%d tts:%d",args->nop, args->ttd, args->tte, args->tts);
 	if (argc > 5)
 		args->not = ft_atoi(argv[5]);
 	else
